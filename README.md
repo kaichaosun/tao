@@ -1,4 +1,20 @@
-# Substrate Node Template
+# TAO - Transparent Autonomy Origanization
+
+Using Substrate to build a blockchain which can land the organisations in reality. 
+
+Possible features:
+
+- [ ] create an organisation
+- [ ] issue tokens for founders
+- [ ] create role for staff
+- [ ] define workflow between roles
+- [ ] asign tasks under certain role
+- [ ] periodcally pay salary for staff
+- [ ] deposit initial fund
+- [ ] process fund raising
+- [ ] create vote for above activity changes
+
+## Components
 
 A new Substrate node, ready for hacking. This node includes:
 
