@@ -1,4 +1,4 @@
-# TAO - Transparent Autonomy Origanization
+# TAO - Transparent Autonomous Organization
 
 Using Substrate to build a blockchain which can land the organisations in reality. 
 
