@@ -46,7 +46,7 @@ decl_storage! {
 
 		Organizations get(fn organizations): map hasher(blake2_128_concat) T::Hash => OrganizationInfo<T::AccountId, T::BlockNumber>;
 		Participants get(fn participants): map hasher(blake2_128_concat) T::AccountId => Vec<T::Hash>;
-		Members get(fn members): map hasher(blake2_128_concat) T::Hash => Vec<Member<T::AccountId, T::BlockNumber>>;
+		OrganizationMembers get(fn org_members): map hasher(blake2_128_concat) T::Hash => Vec<Member<T::AccountId, T::BlockNumber>>;
 	}
 }
 
@@ -85,7 +85,10 @@ decl_module! {
 		/// # <weight>
 		/// # </weight>
 		#[weight = frame_support::weights::SimpleDispatchInfo::default()]
-		pub fn create_organization(origin, name: Vec<u8>, description: Vec<u8>) -> dispatch::DispatchResult {
+		pub fn create_organization(
+			origin, name: Vec<u8>, description: Vec<u8>,
+			members: Option<Vec<T::AccountId>>,
+		) -> dispatch::DispatchResult {
 			let who = ensure_signed(origin)?;
 			
 			// TODO
@@ -103,14 +106,23 @@ decl_module! {
 				created_at: block_number,
 			};
 
-			let member = Member {
+			Organizations::<T>::insert(org_id, org_info);
+			Participants::<T>::mutate(&who, |v| v.push(org_id));
+
+			let creator = Member {
 				account_id: who.clone(),
 				joined_at: block_number,
 			};
-
-			Organizations::<T>::insert(org_id, org_info);
-			Participants::<T>::mutate(who, |v| v.push(org_id));
-			Members::<T>::mutate(org_id, |v|v.push(member));
+			let mut org_members: Vec<Member<T::AccountId, T::BlockNumber>> = members.unwrap_or(vec![])
+				.iter()
+				.map(|m| Member {
+					account_id: m.clone(),
+					joined_at: block_number,
+				})
+				.collect();
+			org_members.push(creator);
+			
+			OrganizationMembers::<T>::insert(org_id, org_members);
 
 			Ok(())
 		}
