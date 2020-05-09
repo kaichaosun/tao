@@ -228,6 +228,7 @@ impl template::Trait for Runtime {
 
 impl organization::Trait for Runtime {
 	type Event = Event;
+	type Balance = Balance;
 }
 
 construct_runtime!(

@@ -4,10 +4,10 @@ use sp_std::prelude::*;
 use codec::{Encode, Decode};
 use frame_support::{
 	decl_module, decl_storage, decl_event, decl_error,
-	RuntimeDebug, dispatch,
+	Parameter, RuntimeDebug, dispatch,
 };
 use frame_system::{self as system, ensure_signed};
-use sp_runtime::traits::Hash;
+use sp_runtime::traits::{Hash, AtLeast32Bit, Member};
 
 #[cfg(test)]
 mod mock;
@@ -26,17 +26,20 @@ pub struct OrganizationInfo<AccountId, BlockNumber> {
 }
 
 #[derive(Clone, Eq, PartialEq, Encode, Decode, Default, RuntimeDebug)]
-pub struct Member<AccountId, BlockNumber> {
+pub struct OrganizationMember<AccountId, BlockNumber> {
 	account_id: AccountId,
 	// title: Vec<u8>, // TODO change to role
 	joined_at: BlockNumber,
-	// is_board_member: bool,
+	is_shareholder: bool,
+	// status: MemberStatus, // pending, joined
 }
 
 /// The pallet's configuration trait.
 pub trait Trait: system::Trait {
 	/// The overarching event type.
 	type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
+
+	type Balance: Member + Parameter + AtLeast32Bit + Default + Copy;
 }
 
 // This pallet's storage items.
@@ -46,7 +49,9 @@ decl_storage! {
 
 		Organizations get(fn organizations): map hasher(blake2_128_concat) T::Hash => OrganizationInfo<T::AccountId, T::BlockNumber>;
 		Participants get(fn participants): map hasher(blake2_128_concat) T::AccountId => Vec<T::Hash>;
-		OrganizationMembers get(fn org_members): map hasher(blake2_128_concat) T::Hash => Vec<Member<T::AccountId, T::BlockNumber>>;
+		OrganizationMembers get(fn org_members): map hasher(blake2_128_concat) T::Hash => Vec<OrganizationMember<T::AccountId, T::BlockNumber>>;
+
+		Shares get(fn shares): double_map hasher(blake2_128_concat) T::Hash, hasher(blake2_128_concat) T::AccountId => T::Balance;
 	}
 }
 
@@ -87,6 +92,7 @@ decl_module! {
 		#[weight = frame_support::weights::SimpleDispatchInfo::default()]
 		pub fn create_organization(
 			origin, name: Vec<u8>, description: Vec<u8>,
+			shareholders: Option<Vec<(T::AccountId, T::Balance)>>,
 			members: Option<Vec<T::AccountId>>,
 		) -> dispatch::DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -109,19 +115,29 @@ decl_module! {
 			Organizations::<T>::insert(org_id, org_info);
 			Participants::<T>::mutate(&who, |v| v.push(org_id));
 
-			let creator = Member {
-				account_id: who.clone(),
-				joined_at: block_number,
-			};
-			let mut org_members: Vec<Member<T::AccountId, T::BlockNumber>> = members.unwrap_or(vec![])
+			// TODO make default shares configurable
+			let org_shares = shareholders.unwrap_or(vec![(who, 10000.into())]);
+
+			let mut org_members: Vec<OrganizationMember<T::AccountId, T::BlockNumber>> = members.unwrap_or(vec![])
 				.iter()
-				.map(|m| Member {
+				.map(|m| OrganizationMember {
 					account_id: m.clone(),
 					joined_at: block_number,
+					is_shareholder: false,
 				})
 				.collect();
-			org_members.push(creator);
-			
+
+			for holder in org_shares {
+				<Shares<T>>::insert(org_id, &holder.0, holder.1);
+
+				let member = OrganizationMember {
+					account_id: holder.0,
+					joined_at: block_number,
+					is_shareholder: true,
+				};
+				org_members.push(member);
+			}
+
 			OrganizationMembers::<T>::insert(org_id, org_members);
 
 			Ok(())
