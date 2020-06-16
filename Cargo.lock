@@ -2791,7 +2791,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-organization"
-version = "2.0.0-alpha.6"
+version = "2.0.0-rc3"
 dependencies = [
  "frame-support",
  "frame-system",
