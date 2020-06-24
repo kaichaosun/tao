@@ -121,6 +121,12 @@ git = 'https://github.com/paritytech/substrate.git'
 tag = 'v2.0.0-rc3'
 version = '2.0.0-rc3'
 
+[dependencies.sp-staking]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+tag = 'v2.0.0-rc3'
+version = '2.0.0-rc3'
+
 [dependencies.sudo]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
@@ -132,6 +138,28 @@ version = '2.0.0-rc3'
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
 package = 'frame-system'
+tag = 'v2.0.0-rc3'
+version = '2.0.0-rc3'
+
+[dependencies.session]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+features = ["historical"]
+package = 'pallet-session'
+tag = 'v2.0.0-rc3'
+version = '2.0.0-rc3'
+
+[dependencies.staking]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+package = 'pallet-staking'
+tag = 'v2.0.0-rc3'
+version = '2.0.0-rc3'
+
+[dependencies.pallet-staking-reward-curve]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+package = 'pallet-staking-reward-curve'
 tag = 'v2.0.0-rc3'
 version = '2.0.0-rc3'
 
@@ -200,9 +228,12 @@ std = [
     'sp-std/std',
     'sp-transaction-pool/std',
     'sp-version/std',
+    'sp-staking/std',
     'sudo/std',
     'system/std',
     'timestamp/std',
+    'session/std',
+    'staking/std',
     'transaction-payment/std',
     'template/std',
     'organization/std',

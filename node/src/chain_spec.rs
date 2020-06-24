@@ -1,11 +1,12 @@
 use sp_core::{Pair, Public, sr25519};
 use node_template_runtime::{
 	AccountId, BabeConfig, BalancesConfig, GenesisConfig, GrandpaConfig,
-	SudoConfig, SystemConfig, WASM_BINARY, Signature
+	SudoConfig, SystemConfig, SessionConfig, StakingConfig, opaque::SessionKeys,
+	StakerStatus, Balance, currency::DOLLARS, WASM_BINARY, Signature
 };
 use sp_consensus_babe::{AuthorityId as BabeId};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
-use sp_runtime::traits::{Verify, IdentifyAccount};
+use sp_runtime::{Perbill, traits::{Verify, IdentifyAccount}};
 use sc_service::ChainType;
 
 // Note this is the URL for the telemetry server
@@ -101,10 +102,20 @@ pub fn local_testnet_config() -> ChainSpec {
 	)
 }
 
+fn session_keys(
+	babe: BabeId,
+	grandpa: GrandpaId,
+) -> SessionKeys {
+	SessionKeys { grandpa, babe }
+}
+
 fn testnet_genesis(initial_authorities: Vec<(AccountId, AccountId, BabeId, GrandpaId)>,
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
 	_enable_println: bool) -> GenesisConfig {
+	
+	const STASH: Balance = 100 * DOLLARS;
+	
 	GenesisConfig {
 		system: Some(SystemConfig {
 			code: WASM_BINARY.to_vec(),
@@ -114,13 +125,31 @@ fn testnet_genesis(initial_authorities: Vec<(AccountId, AccountId, BabeId, Grand
 			balances: endowed_accounts.iter().cloned().map(|k|(k, 1 << 60)).collect(),
 		}),
 		babe: Some(BabeConfig {
-			authorities: initial_authorities.iter().map(|x| (x.2.clone(), 1)).collect(),
+			authorities: vec![],
 		}),
 		grandpa: Some(GrandpaConfig {
-			authorities: initial_authorities.iter().map(|x| (x.3.clone(), 1)).collect(),
+			authorities: vec![],
 		}),
 		sudo: Some(SudoConfig {
 			key: root_key,
+		}),
+		session: Some(SessionConfig {
+			keys: initial_authorities.iter().map(|x| {
+				(x.0.clone(), x.0.clone(), session_keys(
+					x.2.clone(),
+					x.3.clone(),
+				))
+			}).collect::<Vec<_>>(),
+		}),
+		staking: Some(StakingConfig {
+			validator_count: initial_authorities.len() as u32 * 2,
+			minimum_validator_count: initial_authorities.len() as u32,
+			stakers: initial_authorities.iter().map(|x| {
+				(x.0.clone(), x.1.clone(), STASH, StakerStatus::Validator)
+			}).collect(),
+			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
+			slash_reward_fraction: Perbill::from_percent(10),
+			.. Default::default()
 		}),
 	}
 }
