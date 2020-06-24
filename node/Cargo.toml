@@ -25,6 +25,7 @@ futures = '0.3.4'
 log = '0.4.8'
 parking_lot = '0.10.0'
 structopt = '0.3.8'
+hex-literal = "0.2.1"
 
 [dependencies.node-template-runtime]
 path = '../runtime'
@@ -111,6 +112,18 @@ tag = 'v2.0.0-rc3'
 version = '2.0.0-rc3'
 
 [dependencies.sp-transaction-pool]
+git = 'https://github.com/paritytech/substrate.git'
+tag = 'v2.0.0-rc3'
+version = '2.0.0-rc3'
+
+
+[dependencies.telemetry]
+git = 'https://github.com/paritytech/substrate.git'
+package = "sc-telemetry"
+tag = 'v2.0.0-rc3'
+version = '2.0.0-rc3'
+
+[dependencies.pallet-staking]
 git = 'https://github.com/paritytech/substrate.git'
 tag = 'v2.0.0-rc3'
 version = '2.0.0-rc3'

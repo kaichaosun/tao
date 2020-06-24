@@ -2524,8 +2524,10 @@ name = "node-template"
 version = "2.0.0-rc3"
 dependencies = [
  "futures 0.3.5",
+ "hex-literal",
  "log",
  "node-template-runtime",
+ "pallet-staking",
  "parking_lot 0.10.2",
  "sc-basic-authorship",
  "sc-cli",
@@ -2536,6 +2538,7 @@ dependencies = [
  "sc-finality-grandpa",
  "sc-network",
  "sc-service",
+ "sc-telemetry",
  "sc-transaction-pool",
  "sp-consensus",
  "sp-consensus-babe",
