@@ -121,6 +121,18 @@ git = 'https://github.com/paritytech/substrate.git'
 tag = 'v2.0.0-rc3'
 version = '2.0.0-rc3'
 
+# [dependencies.sp-authority-discovery]
+# default-features = false
+# git = 'https://github.com/paritytech/substrate.git'
+# tag = 'v2.0.0-rc3'
+# version = '2.0.0-rc3'
+
+[dependencies.sp-staking]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+tag = 'v2.0.0-rc3'
+version = '2.0.0-rc3'
+
 [dependencies.sudo]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
@@ -134,6 +146,70 @@ git = 'https://github.com/paritytech/substrate.git'
 package = 'frame-system'
 tag = 'v2.0.0-rc3'
 version = '2.0.0-rc3'
+
+# [dependencies.authority-discovery]
+# default-features = false
+# git = 'https://github.com/paritytech/substrate.git'
+# package = 'pallet-authority-discovery'
+# tag = 'v2.0.0-rc3'
+# version = '2.0.0-rc3'
+
+# [dependencies.authorship]
+# default-features = false
+# git = 'https://github.com/paritytech/substrate.git'
+# package = 'pallet-authorship'
+# tag = 'v2.0.0-rc3'
+# version = '2.0.0-rc3'
+
+# [dependencies.im-online]
+# default-features = false
+# git = 'https://github.com/paritytech/substrate.git'
+# package = 'pallet-im-online'
+# tag = 'v2.0.0-rc3'
+# version = '2.0.0-rc3'
+
+[dependencies.session]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+features = ["historical"]
+package = 'pallet-session'
+tag = 'v2.0.0-rc3'
+version = '2.0.0-rc3'
+
+[dependencies.staking]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+package = 'pallet-staking'
+tag = 'v2.0.0-rc3'
+version = '2.0.0-rc3'
+
+[dependencies.staking-reward-curve]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+package = 'pallet-staking-reward-curve'
+tag = 'v2.0.0-rc3'
+version = '2.0.0-rc3'
+
+# [dependencies.offences]
+# default-features = false
+# git = 'https://github.com/paritytech/substrate.git'
+# package = 'pallet-offences'
+# tag = 'v2.0.0-rc3'
+# version = '2.0.0-rc3'
+
+# [dependencies.finality-tracker]
+# default-features = false
+# git = 'https://github.com/paritytech/substrate.git'
+# package = 'pallet-finality-tracker'
+# tag = 'v2.0.0-rc3'
+# version = '2.0.0-rc3'
+
+# [dependencies.elections-phragmen]
+# default-features = false
+# git = 'https://github.com/paritytech/substrate.git'
+# package = 'pallet-elections-phragmen'
+# tag = 'v2.0.0-rc3'
+# version = '2.0.0-rc3'
 
 [dependencies.template]
 default-features = false
@@ -200,9 +276,19 @@ std = [
     'sp-std/std',
     'sp-transaction-pool/std',
     'sp-version/std',
+    # 'sp-authority-discovery/std',
+    'sp-staking/std',
     'sudo/std',
     'system/std',
     'timestamp/std',
+    # 'authority-discovery/std',
+    # 'authorship/std',
+    # 'im-online/std',
+    'session/std',
+    'staking/std',
+    # 'offences/std',
+    # 'finality-tracker/std',
+    # 'elections-phragmen/std',
     'transaction-payment/std',
     'template/std',
     'organization/std',

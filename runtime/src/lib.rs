@@ -12,10 +12,12 @@ use sp_std::prelude::*;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
 	ApplyExtrinsicResult, generic, create_runtime_str, impl_opaque_keys, MultiSignature,
-	transaction_validity::{TransactionValidity, TransactionSource},
+	transaction_validity::{TransactionValidity, TransactionSource, TransactionPriority},
+	FixedPointNumber,
 };
 use sp_runtime::traits::{
-	BlakeTwo256, Block as BlockT, IdentityLookup, Verify, IdentifyAccount, NumberFor, Saturating,
+	BlakeTwo256, Block as BlockT, OpaqueKeys, IdentityLookup, StaticLookup,
+	Verify, IdentifyAccount, NumberFor, Saturating, SaturatedConversion,
 };
 use sp_api::impl_runtime_apis;
 use grandpa::{AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList};
@@ -23,6 +25,11 @@ use grandpa::fg_primitives;
 use sp_version::RuntimeVersion;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
+use sp_runtime::curve::PiecewiseLinear;
+// use im_online::sr25519::AuthorityId as ImOnlineId;
+// use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
+use session::{historical as session_historical};
+use sp_runtime::traits::Convert;
 
 // A few exports that help ease life for downstream crates.
 #[cfg(any(feature = "std", test))]
@@ -37,6 +44,7 @@ pub use frame_support::{
 		Weight, IdentityFee,
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
 	},
+	debug,
 };
 
 /// Importing a template pallet
@@ -121,6 +129,22 @@ pub const EPOCH_DURATION_IN_SLOTS: u64 = {
 
 // 1 in 4 blocks (on average, not counting collisions) will be primary BABE blocks.
 pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
+
+/// Struct that handles the conversion of Balance -> `u64`. This is used for staking's election
+/// calculation.
+pub struct CurrencyToVoteHandler;
+
+impl CurrencyToVoteHandler {
+	fn factor() -> Balance { (Balances::total_issuance() / u64::max_value() as Balance).max(1) }
+}
+
+impl Convert<Balance, u64> for CurrencyToVoteHandler {
+	fn convert(x: Balance) -> u64 { (x / Self::factor()) as u64 }
+}
+
+impl Convert<u128, Balance> for CurrencyToVoteHandler {
+	fn convert(x: u128) -> Balance { x * Self::factor() }
+}
 
 /// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
@@ -237,6 +261,186 @@ impl timestamp::Trait for Runtime {
 	type MinimumPeriod = MinimumPeriod;
 }
 
+// parameter_types! {
+// 	pub const UncleGenerations: BlockNumber = 5;
+// }
+
+// impl authorship::Trait for Runtime {
+// 	type FindAuthor = session::FindAccountFromAuthorIndex<Self, Babe>;
+// 	type UncleGenerations = UncleGenerations;
+// 	type FilterUncle = ();
+// 	type EventHandler = (Staking, ImOnline);
+// }
+
+parameter_types! {
+	pub const DisabledValidatorsThreshold: Perbill = Perbill::from_percent(17);
+}
+
+// impl session::Trait for Runtime {
+// 	type Event = Event;
+// 	type ValidatorId = <Self as system::Trait>::AccountId;
+// 	type ValidatorIdOf = staking::StashOf<Self>;
+// 	type ShouldEndSession = Babe;
+// 	type NextSessionRotation = Babe;
+// 	type SessionManager = session::historical::NoteHistoricalRoot<Self, Staking>;
+// 	type SessionHandler = <opaque::SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
+// 	type Keys = opaque::SessionKeys;
+// 	type DisabledValidatorsThreshold = DisabledValidatorsThreshold;
+// }
+
+// impl session::historical::Trait for Runtime {
+// 	type FullIdentification = staking::Exposure<AccountId, Balance>;
+// 	type FullIdentificationOf = staking::ExposureOf<Runtime>;
+// }
+
+staking_reward_curve::build! {
+	const REWARD_CURVE: PiecewiseLinear<'static> = curve!(
+		min_inflation: 0_025_000,
+		max_inflation: 0_100_000,
+		ideal_stake: 0_500_000,
+		falloff: 0_050_000,
+		max_piece_count: 40,
+		test_precision: 0_005_000,
+	);
+}
+
+// parameter_types! {
+// 	pub const SessionsPerEra: sp_staking::SessionIndex = 6;
+// 	pub const BondingDuration: staking::EraIndex = 24 * 28;
+// 	pub const SlashDeferDuration: staking::EraIndex = 24 * 7; // 1/4 the bonding duration.
+// 	pub const RewardCurve: &'static PiecewiseLinear<'static> = &REWARD_CURVE;
+// 	pub const MaxNominatorRewardedPerValidator: u32 = 64;
+// 	pub const ElectionLookahead: BlockNumber = EPOCH_DURATION_IN_BLOCKS / 4;
+// 	pub const MaxIterations: u32 = 10;
+// 	// 0.05%. The higher the value, the more strict solution acceptance becomes.
+// 	pub MinSolutionScoreBump: Perbill = Perbill::from_rational_approximation(5u32, 10_000);
+// }
+
+// impl<C> system::offchain::SendTransactionTypes<C> for Runtime where
+// 	Call: From<C>,
+// {
+// 	type Extrinsic = UncheckedExtrinsic;
+// 	type OverarchingCall = Call;
+// }
+
+// impl staking::Trait for Runtime {
+// 	type Currency = Balances;
+// 	type UnixTime = Timestamp;
+// 	type CurrencyToVote = CurrencyToVoteHandler;
+// 	type RewardRemainder = (); // Treasury TODO
+// 	type Event = Event;
+// 	type Slash = (); // send the slashed funds to the treasury. TODO
+// 	type Reward = (); // rewards are minted from the void
+// 	type SessionsPerEra = SessionsPerEra;
+// 	type BondingDuration = BondingDuration;
+// 	type SlashDeferDuration = SlashDeferDuration;
+// 	/// A super-majority of the council can cancel the slash.
+// 	type SlashCancelOrigin = system::EnsureRoot<Self::AccountId>; // TODO
+// 	type SessionInterface = Self;
+// 	type RewardCurve = RewardCurve;
+// 	type NextNewSession = Session;
+// 	type ElectionLookahead = ElectionLookahead;
+// 	type Call = Call;
+// 	type MaxIterations = MaxIterations;
+// 	type MinSolutionScoreBump = MinSolutionScoreBump;
+// 	type MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
+// 	type UnsignedPriority = StakingUnsignedPriority;
+// }
+
+// parameter_types! {
+// 	pub const SessionDuration: BlockNumber = EPOCH_DURATION_IN_SLOTS as _;
+// 	pub const ImOnlineUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
+// 	/// We prioritize im-online heartbeats over election solution submission.
+// 	pub const StakingUnsignedPriority: TransactionPriority = TransactionPriority::max_value() / 2;
+// }
+
+
+// impl<LocalCall> system::offchain::CreateSignedTransaction<LocalCall> for Runtime where
+// 	Call: From<LocalCall>,
+// {
+// 	fn create_transaction<C: system::offchain::AppCrypto<Self::Public, Self::Signature>>(
+// 		call: Call,
+// 		public: <Signature as traits::Verify>::Signer,
+// 		account: AccountId,
+// 		nonce: Index,
+// 	) -> Option<(Call, <UncheckedExtrinsic as traits::Extrinsic>::SignaturePayload)> {
+// 		// take the biggest period possible.
+// 		let period = BlockHashCount::get()
+// 			.checked_next_power_of_two()
+// 			.map(|c| c / 2)
+// 			.unwrap_or(2) as u64;
+// 		let current_block = System::block_number()
+// 			.saturated_into::<u64>()
+// 			// The `System::block_number` is initialized with `n+1`,
+// 			// so the actual block number is `n`.
+// 			.saturating_sub(1);
+// 		let tip = 0;
+// 		let extra: SignedExtra = (
+// 			system::CheckSpecVersion::<Runtime>::new(),
+// 			system::CheckTxVersion::<Runtime>::new(),
+// 			system::CheckGenesis::<Runtime>::new(),
+// 			system::CheckEra::<Runtime>::from(generic::Era::mortal(period, current_block)),
+// 			system::CheckNonce::<Runtime>::from(nonce),
+// 			system::CheckWeight::<Runtime>::new(),
+// 			transaction_payment::ChargeTransactionPayment::<Runtime>::from(tip),
+// 			grandpa::ValidateEquivocationReport::<Runtime>::new(),
+// 		);
+// 		let raw_payload = SignedPayload::new(call, extra).map_err(|e| {
+// 			debug::warn!("Unable to create signed payload: {:?}", e);
+// 		}).ok()?;
+// 		let signature = raw_payload.using_encoded(|payload| {
+// 			C::sign(payload, public)
+// 		})?;
+// 		let address = IdentityLookup::<AccountId>::unlookup(account);
+// 		let (call, extra, _) = raw_payload.deconstruct();
+// 		Some((call, (address, signature.into(), extra)))
+// 	}
+// }
+
+// impl system::offchain::SigningTypes for Runtime {
+// 	type Public = <Signature as traits::Verify>::Signer;
+// 	type Signature = Signature;
+// }
+
+// impl<C> system::offchain::SendTransactionTypes<C> for Runtime where
+// 	Call: From<C>,
+// {
+// 	type Extrinsic = UncheckedExtrinsic;
+// 	type OverarchingCall = Call;
+// }
+
+// impl im_online::Trait for Runtime {
+// 	type AuthorityId = ImOnlineId;
+// 	type Event = Event;
+// 	type SessionDuration = SessionDuration;
+// 	type ReportUnresponsiveness = Offences;
+// 	type UnsignedPriority = ImOnlineUnsignedPriority;
+// }
+
+// parameter_types! {
+// 	pub OffencesWeightSoftLimit: Weight = Perbill::from_percent(60) * MaximumBlockWeight::get();
+// }
+
+// impl offences::Trait for Runtime {
+// 	type Event = Event;
+// 	type IdentificationTuple = session::historical::IdentificationTuple<Self>;
+// 	type OnOffenceHandler = Staking;
+// 	type WeightSoftLimit = OffencesWeightSoftLimit;
+// }
+
+// impl authority_discovery::Trait for Runtime {}
+
+// parameter_types! {
+// 	pub const WindowSize: BlockNumber = 101;
+// 	pub const ReportLatency: BlockNumber = 1000;
+// }
+
+// impl finality_tracker::Trait for Runtime {
+// 	type OnFinalizationStalled = ();
+// 	type WindowSize = WindowSize;
+// 	type ReportLatency = ReportLatency;
+// }
+
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 500;
 }
@@ -277,6 +481,18 @@ impl organization::Trait for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 }
+
+// AuthorityDiscovery: authority_discovery::{Module, Call, Config},
+// ImOnline: im_online::{Module, Call, Storage, Event<T>, ValidateUnsigned, Config<T>},
+// AuthorityDiscovery: authority_discovery::{Module, Call, Config},
+// Offences: offences::{Module, Call, Storage, Event},
+// Authorship: authorship::{Module, Call, Storage, Inherent},
+// Elections: elections_phragmen::{Module, Call, Storage, Event<T>, Config<T>},
+// FinalityTracker: finality_tracker::{Module, Call, Inherent},
+
+// Staking: staking::{Module, Call, Config<T>, Storage, Event<T>, ValidateUnsigned},
+		// Session: session::{Module, Call, Storage, Event, Config<T>},
+		// Historical: session_historical::{Module},
 
 construct_runtime!(
 	pub enum Runtime where
@@ -324,6 +540,8 @@ pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, Call, Signatu
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, Call, SignedExtra>;
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<Runtime, Block, system::ChainContext<Runtime>, Runtime, AllModules>;
+/// The payload being signed in transactions.
+// pub type SignedPayload = generic::SignedPayload<Call, SignedExtra>;
 
 impl_runtime_apis! {
 	impl sp_api::Core<Block> for Runtime {
