@@ -3,7 +3,7 @@
   "id": "tao_staging",
   "chainType": "Live",
   "bootNodes": [
-    "/ip4/127.0.0.1/tcp/30333/p2p/12D3KooWMmsXriTjqeiw4Us9LLgzRGiUmq8f5frBvyJgaYAwNcrU"
+    "/ip4/35.241.116.137/tcp/30333/p2p/12D3KooWAuGTX8AdN8fMXrvn31H8gb14HjsaUHbzxX3mnFV2RSXY"
   ],
   "telemetryEndpoints": [
     [
