@@ -2572,6 +2572,7 @@ dependencies = [
  "hex-literal",
  "log",
  "node-template-runtime",
+ "pallet-im-online",
  "pallet-staking",
  "parking_lot 0.10.2",
  "sc-basic-authorship",

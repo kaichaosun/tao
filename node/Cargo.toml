@@ -127,3 +127,8 @@ version = '2.0.0-rc4'
 git = 'https://github.com/paritytech/substrate.git'
 tag = 'v2.0.0-rc4'
 version = '2.0.0-rc4'
+
+[dependencies.pallet-im-online]
+git = 'https://github.com/paritytech/substrate.git'
+tag = 'v2.0.0-rc4'
+version = '2.0.0-rc4'

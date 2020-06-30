@@ -104,6 +104,7 @@ pub mod opaque {
 		pub struct SessionKeys {
 			pub babe: Babe,
 			pub grandpa: Grandpa,
+			pub im_online: ImOnline,
 		}
 	}
 }
