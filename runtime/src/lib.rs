@@ -114,7 +114,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("node-template"),
 	impl_name: create_runtime_str!("node-template"),
 	authoring_version: 1,
-	spec_version: 1,
+	spec_version: 2,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -347,6 +347,17 @@ impl staking::Trait for Runtime {
 }
 
 parameter_types! {
+	pub const UncleGenerations: BlockNumber = 5;
+}
+
+impl authorship::Trait for Runtime {
+	type FindAuthor = session::FindAccountFromAuthorIndex<Self, Babe>;
+	type UncleGenerations = UncleGenerations;
+	type FilterUncle = ();
+	type EventHandler = Staking;
+}
+
+parameter_types! {
 	pub const ExistentialDeposit: u128 = 500;
 }
 
@@ -402,6 +413,7 @@ construct_runtime!(
 		TransactionPayment: transaction_payment::{Module, Storage},
 		Sudo: sudo::{Module, Call, Config<T>, Storage, Event<T>},
 		Staking: staking::{Module, Call, Config<T>, Storage, Event<T>, ValidateUnsigned},
+		Authorship: authorship::{Module, Call, Storage, Inherent},
 		Session: session::{Module, Call, Storage, Event, Config<T>},
 		Historical: session_historical::{Module},
 		// Used for the module template in `./template.rs`

@@ -12,6 +12,13 @@ package = 'pallet-balances'
 tag = 'v2.0.0-rc3'
 version = '2.0.0-rc3'
 
+[dependencies.authorship]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+package = 'pallet-authorship'
+tag = 'v2.0.0-rc3'
+version = '2.0.0-rc3'
+
 [dependencies.codec]
 default-features = false
 features = ['derive']
@@ -210,6 +217,7 @@ default = ['std']
 std = [
     'babe/std',
     'balances/std',
+    'authorship/std',
     'codec/std',
     'frame-executive/std',
     'frame-support/std',

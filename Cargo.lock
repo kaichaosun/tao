@@ -2558,6 +2558,7 @@ dependencies = [
  "frame-executive",
  "frame-support",
  "frame-system",
+ "pallet-authorship",
  "pallet-babe",
  "pallet-balances",
  "pallet-grandpa",
