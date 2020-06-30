@@ -1,7 +1,8 @@
 use sp_core::{Pair, Public, crypto::UncheckedInto, sr25519};
 use node_template_runtime::{
 	AccountId, BabeConfig, BalancesConfig, GenesisConfig, GrandpaConfig,
-	SudoConfig, SystemConfig, SessionConfig, StakingConfig, opaque::SessionKeys,
+	SudoConfig, SystemConfig, SessionConfig, StakingConfig, DemocracyConfig, 
+	ElectionsConfig, CouncilConfig, TechnicalCommitteeConfig, opaque::SessionKeys,
 	StakerStatus, Balance, currency::DOLLARS, WASM_BINARY, Signature, ImOnlineConfig,
 };
 use sp_consensus_babe::{AuthorityId as BabeId};
@@ -121,6 +122,7 @@ fn testnet_genesis(initial_authorities: Vec<(AccountId, AccountId, BabeId, Grand
 	_enable_println: bool) -> GenesisConfig {
 	
 	const STASH: Balance = 100 * DOLLARS;
+	let num_endowed_accounts = endowed_accounts.len();
 	
 	GenesisConfig {
 		system: Some(SystemConfig {
@@ -161,6 +163,24 @@ fn testnet_genesis(initial_authorities: Vec<(AccountId, AccountId, BabeId, Grand
 		im_online: Some(ImOnlineConfig {
 			keys: vec![],
 		}),
+		democracy: Some(DemocracyConfig::default()),
+		elections_phragmen: Some(ElectionsConfig {
+			members: endowed_accounts.iter()
+						.take((num_endowed_accounts + 1) / 2)
+						.cloned()
+						.map(|member| (member, STASH))
+						.collect(),
+		}),
+		collective_Instance1: Some(CouncilConfig::default()),
+		collective_Instance2: Some(TechnicalCommitteeConfig {
+			members: endowed_accounts.iter()
+						.take((num_endowed_accounts + 1) / 2)
+						.cloned()
+						.collect(),
+			phantom: Default::default(),
+		}),
+		membership_Instance1: Some(Default::default()),
+		treasury: Some(Default::default()),
 	}
 }
 
@@ -189,6 +209,12 @@ fn tao_staging_testnet_genesis() -> GenesisConfig {
 	let endowed_accounts = vec![
 		// 5FemZuvaJ7wVy4S49X7Y9mj7FyTR4caQD5mZo2rL7MXQoXMi
 		hex!["9eaf896d76b55e04616ff1e1dce7fc5e4a417967c17264728b3fd8fee3b12f3c"].into(),
+		// 5FNrxGpnd3z5NTBEFDarNeCCYYx2Fw7DFbsXv1VuwmNXQsNW
+		hex!["928dbd595055b13e3606618516e69d60ea4d8861f0f1c632cf9f503c45f24717"].into(),
+		// 5DknRrEh2khKAiEV9rFFGJLiQQahSJZ7hTYPQNfYmxFsLHQr
+		hex!["4acd70cdbe4a0ab21e96615e1d3f7f809d44ceb169d19232327dc71819451c6e"].into(),
+		// 5E4gXxnM9oC16VCfiL2rGbYhie9B1W8unKpQ2HPzj2EqoGJL
+		hex!["587403d0dbdc7d12ce2a4da526b18df0a3b5c7c2074464c4879ef47b42769b2d"].into(),
 	];
 
 	// for i in 1 2 3 4; do for j in stash controller; do subkey inspect "$SECRET//$i//$j"; done; done
@@ -249,6 +275,7 @@ fn tao_staging_testnet_genesis() -> GenesisConfig {
 	
 	const ENDOWMENT: u128 = 1_000_000 * DOLLARS;
 	const STASH: u128 = 100 * DOLLARS;
+	let num_endowed_accounts = endowed_accounts.len();
 	
 	GenesisConfig {
 		system: Some(SystemConfig {
@@ -294,6 +321,24 @@ fn tao_staging_testnet_genesis() -> GenesisConfig {
 		im_online: Some(ImOnlineConfig {
 			keys: vec![],
 		}),
+		democracy: Some(DemocracyConfig::default()),
+		elections_phragmen: Some(ElectionsConfig {
+			members: endowed_accounts.iter()
+						.take((num_endowed_accounts + 1) / 2)
+						.cloned()
+						.map(|member| (member, STASH))
+						.collect(),
+		}),
+		collective_Instance1: Some(CouncilConfig::default()),
+		collective_Instance2: Some(TechnicalCommitteeConfig {
+			members: endowed_accounts.iter()
+						.take((num_endowed_accounts + 1) / 2)
+						.cloned()
+						.collect(),
+			phantom: Default::default(),
+		}),
+		membership_Instance1: Some(Default::default()),
+		treasury: Some(Default::default()),
 	}
 }
 

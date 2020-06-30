@@ -1,3 +1,6 @@
+[dependencies]
+static_assertions = "1.1.0"
+
 [dependencies.babe]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
@@ -197,6 +200,49 @@ package = 'pallet-utility'
 tag = 'v2.0.0-rc4'
 version = '2.0.0-rc4'
 
+
+[dependencies.treasury]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+package = 'pallet-treasury'
+tag = 'v2.0.0-rc4'
+version = '2.0.0-rc4'
+
+[dependencies.collective]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+package = 'pallet-collective'
+tag = 'v2.0.0-rc4'
+version = '2.0.0-rc4'
+
+[dependencies.elections-phragmen]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+package = 'pallet-elections-phragmen'
+tag = 'v2.0.0-rc4'
+version = '2.0.0-rc4'
+
+[dependencies.membership]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+package = 'pallet-membership'
+tag = 'v2.0.0-rc4'
+version = '2.0.0-rc4'
+
+[dependencies.democracy]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+package = 'pallet-democracy'
+tag = 'v2.0.0-rc4'
+version = '2.0.0-rc4'
+
+[dependencies.scheduler]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+package = 'pallet-scheduler'
+tag = 'v2.0.0-rc4'
+version = '2.0.0-rc4'
+
 [dependencies.template]
 default-features = false
 package = 'pallet-template'
@@ -272,6 +318,12 @@ std = [
     'offences/std',
     'im-online/std',
     'transaction-payment/std',
+    'utility/std',
+    'treasury/std',
+    'collective/std',
+    'elections-phragmen/std',
+    'membership/std',
+    'democracy/std',
     'template/std',
     'organization/std',
 ]
