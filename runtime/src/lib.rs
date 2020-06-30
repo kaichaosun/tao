@@ -25,9 +25,8 @@ use sp_version::RuntimeVersion;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_runtime::curve::PiecewiseLinear;
-// use im_online::sr25519::AuthorityId as ImOnlineId;
-// use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use session::{historical as session_historical};
+use im_online::sr25519::AuthorityId as ImOnlineId;
 use codec::Encode;
 
 // A few exports that help ease life for downstream crates.
@@ -145,7 +144,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("node-template"),
 	impl_name: create_runtime_str!("node-template"),
 	authoring_version: 1,
-	spec_version: 4,
+	spec_version: 5,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -346,6 +345,20 @@ impl grandpa::Trait for Runtime {
 }
 
 parameter_types! {
+	pub const SessionDuration: BlockNumber = EPOCH_DURATION_IN_SLOTS as _;
+	/// We prioritize im-online heartbeats over election solution submission (staking unsigned).
+	pub const ImOnlineUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
+}
+
+impl im_online::Trait for Runtime {
+	type AuthorityId = ImOnlineId;
+	type Event = Event;
+	type SessionDuration = SessionDuration;
+	type ReportUnresponsiveness = Offences;
+	type UnsignedPriority = ImOnlineUnsignedPriority;
+}
+
+parameter_types! {
 	pub const MinimumPeriod: u64 = SLOT_DURATION / 2;
 }
 
@@ -440,7 +453,7 @@ impl authorship::Trait for Runtime {
 	type FindAuthor = session::FindAccountFromAuthorIndex<Self, Babe>;
 	type UncleGenerations = UncleGenerations;
 	type FilterUncle = ();
-	type EventHandler = Staking;
+	type EventHandler = (Staking, ImOnline);
 }
 
 parameter_types! {
@@ -520,6 +533,7 @@ construct_runtime!(
 		Session: session::{Module, Call, Storage, Event, Config<T>},
 		Historical: session_historical::{Module},
 		Utility: utility::{Module, Call, Event},
+		ImOnline: im_online::{Module, Call, Storage, Event<T>, ValidateUnsigned, Config<T>},
 		// Used for the module template in `./template.rs`
 		TemplateModule: template::{Module, Call, Storage, Event<T>},
 		OrganizationModule: organization::{Module, Call, Storage, Event<T>},

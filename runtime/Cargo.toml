@@ -26,6 +26,13 @@ package = 'pallet-offences'
 tag = 'v2.0.0-rc4'
 version = '2.0.0-rc4'
 
+[dependencies.im-online]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+package = 'pallet-im-online'
+tag = 'v2.0.0-rc4'
+version = '2.0.0-rc4'
+
 [dependencies.codec]
 default-features = false
 features = ['derive']
@@ -262,6 +269,8 @@ std = [
     'timestamp/std',
     'session/std',
     'staking/std',
+    'offences/std',
+    'im-online/std',
     'transaction-payment/std',
     'template/std',
     'organization/std',

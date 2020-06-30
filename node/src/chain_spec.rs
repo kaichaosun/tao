@@ -2,7 +2,7 @@ use sp_core::{Pair, Public, crypto::UncheckedInto, sr25519};
 use node_template_runtime::{
 	AccountId, BabeConfig, BalancesConfig, GenesisConfig, GrandpaConfig,
 	SudoConfig, SystemConfig, SessionConfig, StakingConfig, opaque::SessionKeys,
-	StakerStatus, Balance, currency::DOLLARS, WASM_BINARY, Signature
+	StakerStatus, Balance, currency::DOLLARS, WASM_BINARY, Signature, ImOnlineConfig,
 };
 use sp_consensus_babe::{AuthorityId as BabeId};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
@@ -154,6 +154,9 @@ fn testnet_genesis(initial_authorities: Vec<(AccountId, AccountId, BabeId, Grand
 			slash_reward_fraction: Perbill::from_percent(10),
 			.. Default::default()
 		}),
+		im_online: Some(ImOnlineConfig {
+			keys: vec![],
+		}),
 	}
 }
 
@@ -273,6 +276,9 @@ fn tao_staging_testnet_genesis() -> GenesisConfig {
 			force_era: Forcing::ForceNone,
 			slash_reward_fraction: Perbill::from_percent(10),
 			.. Default::default()
+		}),
+		im_online: Some(ImOnlineConfig {
+			keys: vec![],
 		}),
 	}
 }
