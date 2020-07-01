@@ -44,7 +44,7 @@ pub use frame_support::{
 	construct_runtime, parameter_types, StorageValue,
 	traits::{
 		KeyOwnerProofSystem, Randomness, LockIdentifier, OnUnbalanced, Currency,
-		Imbalance,
+		Imbalance, Filter,
 	},
 	weights::{
 		Weight, IdentityFee,
@@ -154,7 +154,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("node-template"),
 	impl_name: create_runtime_str!("node-template"),
 	authoring_version: 1,
-	spec_version: 6,
+	spec_version: 7,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -220,6 +220,14 @@ impl OnUnbalanced<NegativeImbalance> for DealWithFees {
 	}
 }
 
+pub struct BaseFilter;
+impl Filter<Call> for BaseFilter {
+	fn filter(call: &Call) -> bool {
+		/// Avoid processing transactions from template module.
+		!matches!(call, Call::TemplateModule(_))
+	}
+}
+
 /// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
 pub fn native_version() -> NativeVersion {
@@ -244,7 +252,7 @@ parameter_types! {
 impl system::Trait for Runtime {
 	/// The basic call filter to use in Origin. All origins are built with this filter as base,
 	/// except Root.
-	type BaseCallFilter = ();
+	type BaseCallFilter = BaseFilter;
 	/// The identifier used to distinguish between accounts.
 	type AccountId = AccountId;
 	/// The aggregated dispatch type that is available for extrinsics.
