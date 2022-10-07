@@ -1,5 +1,7 @@
 # TAO - Transparent Autonomous Organization
 
+**The repo is replaced by [substrate-stencil](https://github.com/kaichaosun/substrate-stencil) for testnet launch course.**
+
 Using Substrate to build a blockchain which can land the organisations in reality. 
 
 Possible features:
